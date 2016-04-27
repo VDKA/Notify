@@ -1,9 +1,8 @@
 //
-//  NotifyView.swift
+//  Notify.swift
 //  Notify
 //
 //  Created by Ethan Jackwitz on 4/21/16.
-//  Copyright © 2016 Tappr. All rights reserved.
 //
 
 import UIKit
