@@ -27,7 +27,7 @@ enum Dismissal {
 
 ## Recommended Extension
 
-In order to match they current status bar Notify calls `preferredStatusBarStyle()` & `preferredStatusBarHidden()` on the `keyWindow` of your apps `rootViewController`.
+In order to match the current status bar Notify calls `preferredStatusBarStyle()` & `preferredStatusBarHidden()` on the `keyWindow` of your apps `rootViewController`.
 
 If your application's `rootViewController` is typically a `UINavigationController` or subclass thereof, then without this extension it will be the one to decide the visuals of your status bar.
 
