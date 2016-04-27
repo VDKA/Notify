@@ -1,10 +1,8 @@
 language: objective-c
 osx_image: xcode7.3
-xcode_project: Notify.xcodeproj
-xcode_scheme: Notify
-xcode_sdk: iphonesimulator9.3
 env:
   global:
+  - SDK=iphonesimulator9.3
   - FRAMEWORK_NAME=Notify
 before_install:
 - brew update
@@ -21,3 +19,6 @@ deploy:
   on:
     repo: VDKA/Notify
     tags: true
+
+script:
+  - xcodebuild -project $FRAMEWORK_NAME.xcodeproj -target $FRAMEWORK_NAME -sdk $SDK ONLY_ACTIVE_ARCH=NO
