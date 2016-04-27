@@ -1,6 +1,6 @@
 language: objective-c
 osx_image: xcode7.3
-xcode_project: Notify.xcodeproject
+xcode_project: Notify.xcodeproj
 xcode_scheme: Notify
 xcode_sdk: iphonesimulator9.3
 env:
