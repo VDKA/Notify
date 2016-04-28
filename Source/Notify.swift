@@ -141,9 +141,10 @@ internal class Notifier: UIViewController {
       titleLabel.sizeToFit()
     }
     
-    notificationWindow.frame = CGRect(x: 0, y: 0, width: labelWidth, height: Notifier.statusBarHeight + titleLabelHeight)
+    let pad: CGFloat = 2
+    notificationWindow.frame = CGRect(x: 0, y: 0, width: labelWidth, height: Notifier.statusBarHeight + titleLabelHeight - pad)
     view.frame = notificationWindow.frame
-    titleLabel.frame = CGRect(x: 0, y: Notifier.statusBarHeight, width: labelWidth, height: titleLabelHeight)
+    titleLabel.frame = CGRect(x: 0, y: Notifier.statusBarHeight - 2 * pad, width: labelWidth, height: titleLabelHeight)
   }
   
   override func preferredStatusBarStyle() -> UIStatusBarStyle {
