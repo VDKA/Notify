@@ -14,7 +14,7 @@ public struct Notify {
   public var titleColor: UIColor
   public var font: UIFont
   
-  public init(title: String, backgroundColor: UIColor = .orangeColor(), titleColor: UIColor = Notify.currentStatusBarTextColor, font: UIFont = .boldSystemFontOfSize(12)) {
+  public init(title: String, backgroundColor: UIColor = .orange, titleColor: UIColor = Notify.currentStatusBarTextColor, font: UIFont = .boldSystemFont(ofSize: 12)) {
     self.title = title
     self.backgroundColor = backgroundColor
     self.titleColor = titleColor
@@ -22,7 +22,7 @@ public struct Notify {
   }
   
   /// NOTE: Notification is always dismissable by Tap
-  public func present(dismiss dismiss: Dismissal = .After(2.0), completion: (() -> Void)? = nil) {
+  public func present(dismiss: Dismissal = .after(2.0), completion: (() -> Void)? = nil) {
     Notifier.shared.titleLabel.text = title
     Notifier.shared.titleLabel.font = font
     Notifier.shared.titleLabel.textColor = titleColor
@@ -38,8 +38,8 @@ public struct Notify {
   }
   
   public enum Dismissal {
-    case After(NSTimeInterval)
-    case OnTap
+    case after(TimeInterval)
+    case onTap
   }
 }
 
@@ -48,10 +48,10 @@ public struct Notify {
 
 extension Notify {
   internal static var currentStatusBarTextColor: UIColor {
-    switch UIApplication.sharedApplication().keyWindow?.rootViewController?.preferredStatusBarStyle() {
-    case .Default?: return .blackColor()
-    case .LightContent?: return .whiteColor()
-    default: return .whiteColor()
+    switch UIApplication.shared.keyWindow?.rootViewController?.preferredStatusBarStyle {
+    case .default?: return .black
+    case .lightContent?: return .white
+    default: return .white
     }
   }
 }
@@ -60,7 +60,7 @@ extension Notify {
 internal class Notifier: UIViewController {
   
   static var statusBarHeight: CGFloat {
-    let statusBarSize = UIApplication.sharedApplication().statusBarFrame.size
+    let statusBarSize = UIApplication.shared.statusBarFrame.size
     return min(statusBarSize.width, statusBarSize.height)
     
     // NOTE: This gets around a _bug_ in iOS that results in the frame of the status bar not being updated after a rotation.
@@ -69,33 +69,33 @@ internal class Notifier: UIViewController {
   static let shared: Notifier = Notifier()
   
   lazy var notificationWindow: UIWindow = UIWindow()
-  var mainWindow = UIApplication.sharedApplication().keyWindow
+  var mainWindow = UIApplication.shared.keyWindow
   
   lazy var titleLabelHeight: CGFloat = 15.0
   
   lazy var titleLabel: UILabel = {
     let label = UILabel()
     label.frame.origin.y = Notifier.statusBarHeight
-    label.textAlignment = .Center
-    label.font = UIFont.systemFontOfSize(13)
+    label.textAlignment = .center
+    label.font = UIFont.systemFont(ofSize: 13)
     return label
   }()
   
   var viewcontroller: UIViewController?
-  var hideTimer = NSTimer()
+  var hideTimer = Timer()
   var completion: (() -> Void)?
   
   
   // MARK: - Initializers
   
-  override init(nibName nibNameOrNil: String?, bundle nibBndleOrNil: NSBundle?) {
+  override init(nibName nibNameOrNil: String?, bundle nibBndleOrNil: Bundle?) {
     super.init(nibName: nil, bundle: nil)
     
     setupWindow()
     view.clipsToBounds = true
     view.addSubview(titleLabel)
 
-    NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(orientationDidChange), name: UIDeviceOrientationDidChangeNotification, object: nil)
+    NotificationCenter.default.addObserver(self, selector: #selector(orientationDidChange), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
     
     let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(onTap))
     view.addGestureRecognizer(tapGestureRecognizer)
@@ -106,7 +106,7 @@ internal class Notifier: UIViewController {
   }
   
   deinit {
-    NSNotificationCenter.defaultCenter().removeObserver(self, name: UIDeviceOrientationDidChangeNotification, object: nil)
+    NotificationCenter.default.removeObserver(self, name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
   }
   
   
@@ -120,14 +120,14 @@ internal class Notifier: UIViewController {
   }
   
   func setupFrames() {
-    let labelWidth = UIScreen.mainScreen().bounds.width
+    let labelWidth = UIScreen.main.bounds.width
     let defaultHeight = titleLabelHeight
     
     if let text = titleLabel.text {
       let neededDimensions =
-        NSString(string: text).boundingRectWithSize(
-          CGSize(width: labelWidth, height: CGFloat.infinity),
-          options: NSStringDrawingOptions.UsesLineFragmentOrigin,
+        NSString(string: text).boundingRect(
+          with: CGSize(width: labelWidth, height: CGFloat.infinity),
+          options: NSStringDrawingOptions.usesLineFragmentOrigin,
           attributes: [NSFontAttributeName: titleLabel.font],
           context: nil
         )
@@ -147,18 +147,18 @@ internal class Notifier: UIViewController {
     titleLabel.frame = CGRect(x: 0, y: Notifier.statusBarHeight - 2 * pad, width: labelWidth, height: titleLabelHeight)
   }
   
-  override func preferredStatusBarStyle() -> UIStatusBarStyle {
-    return mainWindow?.rootViewController?.preferredStatusBarStyle() ?? .Default
+  override var preferredStatusBarStyle : UIStatusBarStyle {
+    return mainWindow?.rootViewController?.preferredStatusBarStyle ?? .default
   }
   
-  override func prefersStatusBarHidden() -> Bool {
-    return mainWindow?.rootViewController?.prefersStatusBarHidden() ?? false
+  override var prefersStatusBarHidden : Bool {
+    return mainWindow?.rootViewController?.prefersStatusBarHidden ?? false
   }
   
   
   // MARK: - Movement methods
   
-  func present(dismiss dismiss: Notify.Dismissal) {
+  func present(dismiss: Notify.Dismissal) {
     hideTimer.invalidate()
     
     notificationWindow.makeKeyAndVisible()
@@ -166,19 +166,19 @@ internal class Notifier: UIViewController {
     
     let initialOrigin = notificationWindow.frame.origin.y
     notificationWindow.frame.origin.y = initialOrigin - (Notifier.statusBarHeight + titleLabelHeight)
-    UIView.animateWithDuration(0.2, animations: { 
+    UIView.animate(withDuration: 0.2, animations: { 
       self.notificationWindow.frame.origin.y = initialOrigin
     }, completion: { _ in
       self.setNeedsStatusBarAppearanceUpdate()
     })
     
-    guard case .After(let t) = dismiss else { return }
-    hideTimer = NSTimer.scheduledTimerWithTimeInterval(t, target: self, selector: #selector(timerDidFire), userInfo: nil, repeats: false)
+    guard case .after(let t) = dismiss else { return }
+    hideTimer = Timer.scheduledTimer(timeInterval: t, target: self, selector: #selector(timerDidFire), userInfo: nil, repeats: false)
   }
   
   func hide() {
     let finalOrigin = view.frame.origin.y - (Notifier.statusBarHeight + titleLabelHeight)
-    UIView.animateWithDuration(0.2, animations: {
+    UIView.animate(withDuration: 0.2, animations: {
         self.notificationWindow.frame.origin.y = finalOrigin
 
       }, completion: { _ in
@@ -203,7 +203,7 @@ internal class Notifier: UIViewController {
   }
   
   func orientationDidChange() {
-    guard notificationWindow.keyWindow else { return }
+    guard notificationWindow.isKeyWindow else { return }
     setupFrames()
     hide()
   }
